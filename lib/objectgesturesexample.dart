@@ -1,3 +1,4 @@
+import 'package:ar_anime_waifu/model_model.dart';
 import 'package:ar_flutter_plugin/managers/ar_location_manager.dart';
 import 'package:ar_flutter_plugin/managers/ar_session_manager.dart';
 import 'package:ar_flutter_plugin/managers/ar_object_manager.dart';
@@ -10,17 +11,79 @@ import 'package:ar_flutter_plugin/datatypes/node_types.dart';
 import 'package:ar_flutter_plugin/datatypes/hittest_result_types.dart';
 import 'package:ar_flutter_plugin/models/ar_node.dart';
 import 'package:ar_flutter_plugin/models/ar_hittest_result.dart';
-import 'package:flutter/services.dart';
-import 'package:vector_math/vector_math_64.dart';
-import 'dart:math';
+import 'package:vector_math/vector_math_64.dart' hide Colors;
 
 class ObjectGesturesWidget extends StatefulWidget {
-  ObjectGesturesWidget({Key? key}) : super(key: key);
+  const ObjectGesturesWidget({Key? key}) : super(key: key);
   @override
   _ObjectGesturesWidgetState createState() => _ObjectGesturesWidgetState();
 }
 
 class _ObjectGesturesWidgetState extends State<ObjectGesturesWidget> {
+
+
+  bool _showFeaturePoints = false;
+  bool _showPlanes = true;
+  bool _showWorldOrigin = false;
+  bool _planeTexturePathUse = false;
+  bool _showSettings = false;
+  final String _planeTexturePath = "Images/triangle.png";
+
+  List<Model> models = [
+    Model(
+      "2CylinderEngine",
+      "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/2CylinderEngine/glTF-Binary/2CylinderEngine.glb",
+      "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/2CylinderEngine/screenshot/screenshot.png"
+    ),
+    Model(
+      "AnimatedMorphCube",
+        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/AnimatedMorphCube/glTF-Binary/AnimatedMorphCube.glb",
+        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/AnimatedMorphCube/screenshot/screenshot.gif"
+    ),
+    Model(
+        "AntiqueCamera",
+        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/AntiqueCamera/glTF-Binary/AntiqueCamera.glb",
+        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/AntiqueCamera/screenshot/screenshot.png"
+    ),
+    Model(
+        "BrainStem",
+        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/BrainStem/glTF-Binary/BrainStem.glb",
+        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/BrainStem/screenshot/screenshot.gif"
+    ),
+    Model(
+        "Fox",
+        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/Fox/glTF-Binary/Fox.glb",
+        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/Fox/screenshot/screenshot.jpg"
+    ),
+    Model(
+        "Duck",
+        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/Duck/glTF-Binary/Duck.glb",
+        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/Duck/screenshot/screenshot.png"
+    ),
+    Model(
+        "Lantern",
+        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/Lantern/glTF-Binary/Lantern.glb",
+        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/Lantern/screenshot/screenshot.jpg"
+    ),
+    Model(
+        "SheenChair",
+        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/SheenChair/glTF-Binary/SheenChair.glb",
+        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/SheenChair/screenshot/screenshot-large.jpg"
+    ),
+    Model(
+        "ToyCar",
+        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/ToyCar/glTF-Binary/ToyCar.glb",
+        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/ToyCar/screenshot/screenshot_large.jpg"
+    ),
+
+  ];
+
+  Model currentModel = Model(
+      "2CylinderEngine",
+      "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/2CylinderEngine/glTF-Binary/2CylinderEngine.glb",
+      ""
+  );
+
   late ARSessionManager arSessionManager;
   late ARObjectManager arObjectManager;
   late ARAnchorManager arAnchorManager;
@@ -37,26 +100,161 @@ class _ObjectGesturesWidgetState extends State<ObjectGesturesWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Object Transformation Gestures'),
-        ),
-        body: Container(
-            child: Stack(children: [
-              ARView(
-                onARViewCreated: onARViewCreated,
-                planeDetectionConfig: PlaneDetectionConfig.horizontalAndVertical,
+
+        body: Stack(children: [
+          ARView(
+            onARViewCreated: onARViewCreated,
+            planeDetectionConfig: PlaneDetectionConfig.horizontalAndVertical,
+          ),
+          _showSettings ? SafeArea(
+            child: Align(
+              alignment: FractionalOffset.topRight,
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.5,
+                color: const Color(0x0fffffff).withOpacity(0.5),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _showSettings = !_showSettings;
+                          });
+                        },
+                        icon: const Icon(Icons.close)),
+                    SwitchListTile(
+                      title: const Text('Feature Points'),
+                      value: _showFeaturePoints,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _showFeaturePoints = value;
+                          updateSessionSettings();
+                        });
+                      },
+                    ),
+
+                    SwitchListTile(
+                      title: const Text('Planes'),
+                      value: _showPlanes,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _showPlanes = value;
+                          updateSessionSettings();
+                        });
+                      },
+                    ),
+                    SwitchListTile(
+                      title: const Text('World Origin'),
+                      value: _showWorldOrigin,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _showWorldOrigin = value;
+                          updateSessionSettings();
+                        });
+                      },
+                    ),
+                    SwitchListTile(
+                      title: Text('Plane Texture'),
+                      value: _planeTexturePathUse,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _planeTexturePathUse = value;
+                          updateSessionSettings();
+                        });
+                      },
+                    ),
+                  ],
+                ),
               ),
-              Align(
-                alignment: FractionalOffset.bottomCenter,
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton(
+            ),
+          ) : SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _showSettings = !_showSettings;
+                      });
+                    },
+                    icon: const Icon(Icons.settings, color: Colors.blue,)),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        Navigator.pop(context);
+                      });
+                    },
+                    icon: const Icon(Icons.chevron_left, color: Colors.blue,)),
+              ),
+            ),
+          ),
+          Align(
+            alignment: FractionalOffset.bottomCenter,
+            child: SizedBox(
+              height: 200,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+
+
+                  Expanded(
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: models.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: ChoiceChip(
+                            selectedColor: Colors.blue,
+                            labelPadding: const EdgeInsets.all(0),
+                            label: CircleAvatar(
+                              radius: 28,
+                              backgroundImage: NetworkImage(
+                                models[index].image
+                              ),
+                            ),
+                            selected: currentModel == models[index],
+                            onSelected: (bool selected) {
+                              setState(() {
+                                currentModel = models[index];
+                              });
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  /// Remove
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton.icon(
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all(Colors.redAccent),
+                          ),
                           onPressed: onRemoveEverything,
-                          child: Text("Remove Everything")),
-                    ]),
-              )
-            ])));
+                          icon: const Icon(Icons.delete_forever),
+                          label: const Text("Удалить все")),
+                      ]),
+                  const SizedBox(height: 15)
+
+                ],
+
+              ),
+            ),
+          )
+        ]));
   }
 
   void onARViewCreated(
@@ -69,10 +267,10 @@ class _ObjectGesturesWidgetState extends State<ObjectGesturesWidget> {
     this.arAnchorManager = arAnchorManager;
 
     this.arSessionManager.onInitialize(
-      showFeaturePoints: false,
-      showPlanes: true,
-      customPlaneTexturePath: "Images/triangle.png",
-      showWorldOrigin: true,
+      showFeaturePoints: _showFeaturePoints,
+      showPlanes: _showPlanes,
+      customPlaneTexturePath: _planeTexturePathUse ? _planeTexturePath : null,
+      showWorldOrigin: _showWorldOrigin,
       handlePans: true,
       handleRotation: true,
     );
@@ -92,7 +290,7 @@ class _ObjectGesturesWidgetState extends State<ObjectGesturesWidget> {
       this.arObjectManager.removeNode(node);
     });*/
     anchors.forEach((anchor) {
-      this.arAnchorManager.removeAnchor(anchor);
+      arAnchorManager.removeAnchor(anchor);
     });
     anchors = [];
   }
@@ -104,26 +302,25 @@ class _ObjectGesturesWidgetState extends State<ObjectGesturesWidget> {
     if (singleHitTestResult != null) {
       var newAnchor =
       ARPlaneAnchor(transformation: singleHitTestResult.worldTransform);
-      bool? didAddAnchor = await this.arAnchorManager.addAnchor(newAnchor);
+      bool? didAddAnchor = await arAnchorManager.addAnchor(newAnchor);
       if (didAddAnchor!) {
-        this.anchors.add(newAnchor);
+        anchors.add(newAnchor);
         // Add note to anchor
         var newNode = ARNode(
             type: NodeType.webGLB,
-            uri:
-            "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/Duck/glTF-Binary/Duck.glb",
+            uri: currentModel.modelGLB,
             scale: Vector3(0.2, 0.2, 0.2),
             position: Vector3(0.0, 0.0, 0.0),
             rotation: Vector4(1.0, 0.0, 0.0, 0.0));
         bool? didAddNodeToAnchor =
-        await this.arObjectManager.addNode(newNode, planeAnchor: newAnchor);
+        await arObjectManager.addNode(newNode, planeAnchor: newAnchor);
         if (didAddNodeToAnchor!) {
-          this.nodes.add(newNode);
+          nodes.add(newNode);
         } else {
-          this.arSessionManager.onError("Adding Node to Anchor failed");
+          arSessionManager.onError("Adding Node to Anchor failed");
         }
       } else {
-        this.arSessionManager.onError("Adding Anchor failed");
+        arSessionManager.onError("Adding Anchor failed");
       }
     }
   }
@@ -139,7 +336,7 @@ class _ObjectGesturesWidgetState extends State<ObjectGesturesWidget> {
   onPanEnded(String nodeName, Matrix4 newTransform) {
     print("Ended panning node " + nodeName);
     final pannedNode =
-    this.nodes.firstWhere((element) => element.name == nodeName);
+    nodes.firstWhere((element) => element.name == nodeName);
 
     /*
     * Uncomment the following command if you want to keep the transformations of the Flutter representations of the nodes up to date
@@ -159,7 +356,7 @@ class _ObjectGesturesWidgetState extends State<ObjectGesturesWidget> {
   onRotationEnded(String nodeName, Matrix4 newTransform) {
     print("Ended rotating node " + nodeName);
     final rotatedNode =
-    this.nodes.firstWhere((element) => element.name == nodeName);
+    nodes.firstWhere((element) => element.name == nodeName);
 
     /*
     * Uncomment the following command if you want to keep the transformations of the Flutter representations of the nodes up to date
@@ -167,4 +364,17 @@ class _ObjectGesturesWidgetState extends State<ObjectGesturesWidget> {
     */
     //rotatedNode.transform = newTransform;
   }
+
+  void updateSessionSettings() {
+    arSessionManager.onInitialize(
+      showFeaturePoints: _showFeaturePoints,
+      showPlanes: _showPlanes,
+      showWorldOrigin: _showWorldOrigin,
+      showAnimatedGuide: false,
+      customPlaneTexturePath: _planeTexturePathUse ? _planeTexturePath : null,
+      handlePans: true,
+      handleRotation: true,
+    );
+  }
+
 }

@@ -1,4 +1,4 @@
-import 'package:ar_anime_waifu/degub_options_widget.dart';
+
 import 'package:ar_anime_waifu/objectgesturesexample.dart';
 import 'package:ar_flutter_plugin/ar_flutter_plugin.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +14,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
-  static const String _title = 'AR Plugin Demo';
+  static const String _title = 'AR Project';
 
   @override
   void initState() {
@@ -45,69 +45,45 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: _title,
       home: Scaffold(
         appBar: AppBar(
           title: const Text(_title),
         ),
-        body: Column(children: [
-          Text('Running on: $_platformVersion\n'),
-          Expanded(
-            child: ExampleList(),
-          ),
-        ]),
+        body: Home()
       ),
     );
   }
 }
 
-class ExampleList extends StatelessWidget {
-  ExampleList({Key? key}) : super(key: key);
+class Home extends StatefulWidget {
+  const Home({Key? key}) : super(key: key);
 
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
-    final examples = [
-      Example(
-          'Debug Options',
-          'Visualize feature points, planes and world coordinate system',
-              () => Navigator.push(context,
-              MaterialPageRoute(builder: (context) => DebugOptionsWidget()))),
-      Example(
-          'Object Transformation Gestures',
-          'Rotate and Pan Objects',
-              () => Navigator.push(context,
-              MaterialPageRoute(builder: (context) => ObjectGesturesWidget()))),
-    ];
-    return ListView(
-      children:
-      examples.map((example) => ExampleCard(example: example)).toList(),
-    );
-  }
-}
-
-class ExampleCard extends StatelessWidget {
-  ExampleCard({Key? key, required this.example}) : super(key: key);
-  final Example example;
-
-  @override
-  build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        splashColor: Colors.blue.withAlpha(30),
-        onTap: () {
-          example.onTap();
-        },
-        child: ListTile(
-          title: Text(example.name),
-          subtitle: Text(example.description),
+    return Column(
+      children: [
+        SizedBox(
+          width: 400,
+            child: Image.network("https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/1200px-Image_created_with_a_mobile_phone.png")),
+        Center(
+          child: ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ObjectGesturesWidget()));
+            },
+            child: const Text("Начать"),
+          ),
         ),
-      ),
+      ],
     );
   }
-}
-
-class Example {
-  const Example(this.name, this.description, this.onTap);
-  final String name;
-  final String description;
-  final Function onTap;
 }

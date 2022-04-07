@@ -22,6 +22,7 @@ class _DebugOptionsWidgetState extends State<DebugOptionsWidget> {
   String _planeTexturePath = "Images/triangle.png";
   bool _handleTaps = false;
 
+
   @override
   void dispose() {
     super.dispose();
